@@ -31,11 +31,6 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-app.post("/urls", (req, res) => {
-  console.log(req.body); // Log the POST request body to the console
-  res.send("Ok"); // Respond with 'Ok' (we will replace this)
-});
-
 function generateRandomString() {
   const randOptions = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'; // full set of 62 alphanumeric characters to select from
   let randString = ''; // randomized string to be returned
@@ -46,7 +41,17 @@ function generateRandomString() {
   return randString;
 };
 
-app.get("/u/:id", (req, res) => {
-  // const longURL = ...
-  res.redirect(longURL);
+app.post("/urls", (req, res) => {
+  const longURL = req.body.longURL; 
+  const shortURL = generateRandomString();
+  urlDatabase[shortURL] = longURL;
+  console.log(urlDatabase);
+  res.redirect(`/urls/${shortURL}`);
 });
+
+app.get("/u/:id", (req, res) => {
+  const shortURL = req.params.id;
+  const longURL = urlDatabase[shortURL];
+  res.redirect(`/urls/${longURL}`);
+});
+
