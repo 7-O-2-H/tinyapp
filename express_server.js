@@ -45,3 +45,8 @@ function generateRandomString() {
   }
   return randString;
 };
+
+app.get("/u/:id", (req, res) => {
+  // const longURL = ...
+  res.redirect(longURL);
+});
