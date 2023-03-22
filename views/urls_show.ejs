@@ -8,7 +8,7 @@
       integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS"
       crossorigin="anonymous"
     />
-    <title>URL - TinyApp Example</title>
+    <title>URL - TinyApp</title>
   </head>
 
   <body>
@@ -21,6 +21,17 @@
           Short URL ID: <a href="/u/<%= id %>"><%= id %></a>
         </p>
       </div>
+      <form action="/urls/<%= id %>/edit" method="POST">
+        <h6 for="newURL">Submit new URL to update entry:</h6>
+          <input
+            class="card-text"
+            type="text"
+            name="newURL"
+            placeholder="http://"
+            style="width: 300px; margin: 1em"
+          />
+        <button type="edit" class="btn btn-primary">Update URL</button>
+      </form>
       <div class="card-footer text-muted"></div>
     </div>
     <!-- Bootstrap JS -->
