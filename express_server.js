@@ -69,4 +69,10 @@ app.post('/urls/:id/edit', (request, response) => {
   response.redirect('/urls');
 });
 
+app.post('/login', (req, res) => {
+  const userName = req.body.username;
+  res.cookie(userName, userName, null);
+  res.redirect('/urls');
+});
+
 
