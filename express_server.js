@@ -108,6 +108,13 @@ app.post('/urls/:id/edit', (request, response) => {
   response.redirect('/urls');
 });
 
+app.get('/register', (req, res) => {
+  const templateVars = { 
+    user_id: req.cookies["user_id"]
+  };
+  res.render("urls_login", templateVars);
+});
+
 app.post('/login', (req, res) => {
   const {email, password} = req.body;
   const {err, user} = validateUser(email, password);
