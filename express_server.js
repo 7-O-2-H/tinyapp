@@ -135,11 +135,7 @@ app.get('/login', (req, res) => {
 
 app.post('/logout', (req, res) => {
   res.clearCookie("user_id");
-<<<<<<< HEAD
-  res.redirect('/urls');
-=======
   res.redirect('/login');
->>>>>>> feature/user-registration
 });
 
 app.get('/register', (req, res) => {
