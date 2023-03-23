@@ -120,9 +120,16 @@ app.post('/login', (req, res) => {
   res.redirect('/urls');
 });
 
+app.get('/login', (req, res) => {
+  const templateVars = { 
+    user_id: req.cookies["user_id"]
+  };
+  res.render("urls_login", templateVars);
+});
+
 app.post('/logout', (req, res) => {
   res.clearCookie("user_id");
-  res.redirect('/urls');
+  res.redirect('/login');
 });
 
 app.get('/register', (req, res) => {
