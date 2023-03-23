@@ -41,7 +41,13 @@ const validateUser = (email, password) => {
     return {err: "403: Your password is incorrect.", user: null};
   }
   return {err: null, user: loggedUser}
+};
 
+const userLoggedin = (templateVars) => {
+  if (templateVars.user_id) {
+    return true;
+  }
+  return false;
 }
 
 app.listen(PORT, () => {
@@ -59,7 +65,12 @@ app.get("/urls", (req, res) => {
 
 app.get("/urls/new", (req, res) => {
   const templateVars = {user_id: req.cookies["user_id"]}
-  res.render("urls_new", templateVars);
+  console.log(templateVars);
+  if (userLoggedin(templateVars)) {
+    res.render("urls_new", templateVars);
+  } else {
+    res.redirect("/login");
+  }
 });
 
 app.get("/urls/:id", (req, res) => {
@@ -68,6 +79,10 @@ app.get("/urls/:id", (req, res) => {
     longURL: urlDatabase[req.params.id], 
   user_id: req.cookies["user_id"]
   };
+  if (!templateVars.id) {
+    res.send("You must be logged in to create Tiny URLs");
+    return;
+  }
   res.render("urls_show", templateVars);
 });
 
@@ -81,7 +96,14 @@ function generateRandomString() {
   return randString;
 };
 
-app.post("/urls", (req, res) => {
+app.post("/urls/new", (req, res) => {
+  const templateVars = { 
+    user_id: req.cookies["user_id"]
+  };
+  if (!userLoggedin(templateVars)) {
+    res.send("You must be logged in to create new Tiny URLs.")
+    return;
+  }
   const longURL = req.body.longURL; 
   const shortURL = generateRandomString();
   urlDatabase[shortURL] = longURL;
@@ -102,18 +124,19 @@ app.post('/urls/:id/delete', (request, response) => {
 });
 
 app.post('/urls/:id/edit', (request, response) => {
+  const templateVars = { 
+    user_id: request.cookies["user_id"]
+  };
+  if (!userLoggedin(templateVars)) {
+    response.send("You must be logged in to create Tiny URLs");
+    return;
+  }
   const longURL = request.body.newURL;
   const shortURL = request.params.id;
   urlDatabase[shortURL] = longURL;
   response.redirect('/urls');
 });
 
-app.get('/register', (req, res) => {
-  const templateVars = { 
-    user_id: req.cookies["user_id"]
-  };
-  res.render("urls_login", templateVars);
-});
 
 app.post('/login', (req, res) => {
   const {email, password} = req.body;
@@ -130,7 +153,12 @@ app.get('/login', (req, res) => {
   const templateVars = { 
     user_id: req.cookies["user_id"]
   };
-  res.render("urls_login", templateVars);
+  if (userLoggedin(templateVars)) {
+    res.redirect('/urls');
+    return;
+  } else {
+   res.render("urls_login", templateVars);
+  }
 });
 
 app.post('/logout', (req, res) => {
@@ -142,7 +170,13 @@ app.get('/register', (req, res) => {
   const templateVars = { 
     user_id: req.cookies["user_id"]
   };
-  res.render("urls_register", templateVars);
+  if (userLoggedin(templateVars)) {
+    res.redirect('/urls');
+    return;
+  }
+  
+  res.render("urls_register", templateVars);   
+  
 });
 
 app.post('/register', (req, res) => {
