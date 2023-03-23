@@ -22,11 +22,19 @@
     <%- include('partials/_header') %>
 
     <main style="margin: 1em;">
+<<<<<<< HEAD
+      <h3>Please enter your name and e-mail to register</h3>
+      <form method="POST" action="/register">
+        <div style="width: 20em;">
+          <div class="form-group">
+          <label for="email">Email:</label>
+=======
       <h3>Please enter your e-mail and a password to register</h3>
       <form method="POST" action="/register">
         <div style="width: 20em;">
           <div class="form-group">
           <label for="email">E-mail:</label>
+>>>>>>> feature/user-registration
           <input
             style="width: 100%"
             type="email"
@@ -66,6 +74,9 @@
       crossorigin="anonymous"
     ></script>
   </body>
+<<<<<<< HEAD
+</html>
+=======
 </html>
 
 <!--
@@ -108,3 +119,4 @@
 </body>
 </html>
 -->
+>>>>>>> feature/user-registration
