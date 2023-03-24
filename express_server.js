@@ -11,8 +11,14 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": {
+    longURL: "http://www.lighthouselabs.ca",
+    userID: "fG7t6I",
+  },
+  "9sm5xK": {
+    longURL: "http://www.google.com",
+    userID: "fG7t6I",
+  },
 };
 
 let users = {
@@ -22,6 +28,17 @@ let users = {
     password: "dataBr"
   }
 };
+
+const verifyUser =  (templateVars) => {
+  let usersURLs = {};
+  const currentUser = templateVars.user_id.id;
+  for (const url in urlDatabase) {
+    if (urlDatabase[url].userID === currentUser) {
+      usersURLs[url] = urlDatabase[url];
+    }
+  }
+  return usersURLs;
+}
 
 const findUser = function (email) {
   for (let userID in users) {
@@ -57,15 +74,20 @@ app.listen(PORT, () => {
 
 app.get("/urls", (req, res) => {
   const templateVars = { 
-  user_id: req.cookies["user_id"],
-    urls: urlDatabase
+    user_id: req.cookies["user_id"],
   };
+
+  if (!userLoggedin(templateVars)) {
+    res.send("you must be loggin in to view URLs");
+    return;
+  }
+  const usersURLs = verifyUser(templateVars);
+  templateVars.urls = usersURLs;
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
   const templateVars = {user_id: req.cookies["user_id"]}
-  console.log(templateVars);
   if (userLoggedin(templateVars)) {
     res.render("urls_new", templateVars);
   } else {
@@ -74,10 +96,11 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
+  const ID = req.params.id;
   const templateVars = { 
-    id: req.params.id, 
-    longURL: urlDatabase[req.params.id], 
-  user_id: req.cookies["user_id"]
+    id: ID,
+    longURL: urlDatabase[ID].longURL,
+    user_id: req.cookies["user_id"]
   };
   if (!templateVars.id) {
     res.send("You must be logged in to create Tiny URLs");
@@ -104,10 +127,13 @@ app.post("/urls/new", (req, res) => {
     res.send("You must be logged in to create new Tiny URLs.")
     return;
   }
-  const longURL = req.body.longURL; 
-  const shortURL = generateRandomString();
-  urlDatabase[shortURL] = longURL;
-  res.redirect(`/urls/${shortURL}`);
+  const longUrl = req.body.longURL; 
+  const shortUrl = generateRandomString();
+  urlDatabase[shortUrl] = {
+    longURL: longUrl,
+    userID: shortUrl,
+  };
+  res.redirect(`/urls/${shortUrl}`);
 });
 
 app.get("/u/:id", (req, res) => {
@@ -131,9 +157,9 @@ app.post('/urls/:id/edit', (request, response) => {
     response.send("You must be logged in to create Tiny URLs");
     return;
   }
-  const longURL = request.body.newURL;
+  const longUrl = request.body.newURL;
   const shortURL = request.params.id;
-  urlDatabase[shortURL] = longURL;
+  urlDatabase[shortURL].longURL = longUrl;
   response.redirect('/urls');
 });
 
@@ -198,7 +224,6 @@ app.post('/register', (req, res) => {
     email: email,
     password: password,
   };
-  console.log(users[userRandomID]);
   res.cookie('user_id', users[userRandomID]);
   res.redirect('/urls');
 });
