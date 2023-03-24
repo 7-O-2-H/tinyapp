@@ -123,6 +123,7 @@ app.post("/urls/new", (req, res) => {
   const templateVars = { 
     user_id: req.cookies["user_id"]
   };
+  console.log(templateVars.user_id);
   if (!userLoggedin(templateVars)) {
     res.send("You must be logged in to create new Tiny URLs.")
     return;
@@ -131,7 +132,7 @@ app.post("/urls/new", (req, res) => {
   const shortUrl = generateRandomString();
   urlDatabase[shortUrl] = {
     longURL: longUrl,
-    userID: shortUrl,
+    userID: templateVars.user_id.id,
   };
   res.redirect(`/urls/${shortUrl}`);
 });
@@ -159,6 +160,7 @@ app.post('/urls/:id/edit', (request, response) => {
   }
   const longUrl = request.body.newURL;
   const shortURL = request.params.id;
+  console.log(shortURL);
   urlDatabase[shortURL].longURL = longUrl;
   response.redirect('/urls');
 });
