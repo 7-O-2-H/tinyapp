@@ -123,7 +123,6 @@ app.post("/urls/new", (req, res) => {
   const templateVars = { 
     user_id: req.cookies["user_id"]
   };
-  console.log(templateVars.user_id);
   if (!userLoggedin(templateVars)) {
     res.send("You must be logged in to create new Tiny URLs.")
     return;
@@ -138,6 +137,13 @@ app.post("/urls/new", (req, res) => {
 });
 
 app.get("/u/:id", (req, res) => {
+  const templateVars = { 
+    user_id: req.cookies["user_id"]
+  };
+  if (!userLoggedin(templateVars)) {
+    res.send("You must be logged in to view Tiny URLs");
+    return;
+  }
   const shortURL = req.params.id;
   const longURL = urlDatabase[shortURL];
   res.redirect(`/urls/${longURL}`);
