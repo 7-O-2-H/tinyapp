@@ -1,11 +1,14 @@
-const express = require("express");
+const express = require("express"); //express
 const app = express();
 const PORT = 8080; // default port
 
+// import database, helpers
 const { urlDatabase, users } = require("./database");
-const { verifyUser, validateUser, userLoggedin, findUser } = require("./helpers");
-app.set("view engine", "ejs");
+const { verifyUser, validateUser, userLoggedin, findUser, generateRandomString } = require("./helpers");
 
+app.set("view engine", "ejs"); //ejs
+
+// cookie session
 const cookieSession = require("cookie-session");
 app.use(cookieSession({
   name: 'session',
@@ -13,6 +16,8 @@ app.use(cookieSession({
 
   maxAge: 24 * 60 * 60 * 1000
 }));
+
+//bcrypt
 
 const bcrypt = require("bcryptjs");
 
@@ -22,6 +27,7 @@ app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
+//urls home/view
 
 app.get("/urls", (req, res) => {
   const templateVars = {
@@ -36,6 +42,8 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+//urls add new
+
 app.get("/urls/new", (req, res) => {
   const templateVars = {user_id: req.session.user_id};
   if (userLoggedin(templateVars)) {
@@ -44,30 +52,6 @@ app.get("/urls/new", (req, res) => {
     res.redirect("/login");
   }
 });
-
-app.get("/urls/:id", (req, res) => {
-  const ID = req.params.id;
-  const templateVars = {
-    id: ID,
-    longURL: urlDatabase[ID].longURL,
-    user_id: req.session.user_id
-  };
-  if (!templateVars.id) {
-    res.send("You must be logged in to create Tiny URLs");
-    return;
-  }
-  res.render("urls_show", templateVars);
-});
-
-const generateRandomString = () => {
-  const randOptions = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'; // full set of 62 alphanumeric characters to select from
-  let randString = ''; // randomized string to be returned
-  for (let i = 0; i < 6; i ++) {
-    const randomizer = Math.floor(Math.random() * 62); //random number between 0 and 62
-    randString += randOptions[randomizer];
-  }
-  return randString;
-};
 
 app.post("/urls/new", (req, res) => {
   const templateVars = {
@@ -86,6 +70,23 @@ app.post("/urls/new", (req, res) => {
   res.redirect(`/urls/${shortUrl}`);
 });
 
+//urls view/edit
+
+app.get("/urls/:id", (req, res) => {
+  const ID = req.params.id;
+  const templateVars = {
+    id: ID,
+    longURL: urlDatabase[ID].longURL,
+    user_id: req.session.user_id
+  };
+  if (!templateVars.id) {
+    res.send("You must be logged in to create Tiny URLs");
+    return;
+  }
+  res.render("urls_show", templateVars);
+});
+
+
 app.get("/u/:id", (req, res) => {
   const templateVars = {
     user_id: req.session.user_id
@@ -97,13 +98,6 @@ app.get("/u/:id", (req, res) => {
   const shortURL = req.params.id;
   const longURL = urlDatabase[shortURL];
   res.redirect(`/urls/${longURL}`);
-});
-
-
-app.post('/urls/:id/delete', (request, response) => {
-  const key  = request.params.id;
-  delete urlDatabase[key];
-  response.redirect('/urls');
 });
 
 app.post('/urls/:id/edit', (request, response) => {
@@ -119,6 +113,16 @@ app.post('/urls/:id/edit', (request, response) => {
   urlDatabase[shortURL].longURL = longUrl;
   response.redirect('/urls');
 });
+
+//urls delete
+
+app.post('/urls/:id/delete', (request, response) => {
+  const key  = request.params.id;
+  delete urlDatabase[key];
+  response.redirect('/urls');
+});
+
+//login/logout
 
 app.get('/login', (req, res) => {
   const templateVars = {
@@ -148,6 +152,8 @@ app.post('/logout', (req, res) => {
   req.session.user_id = null;
   res.redirect('/login');
 });
+
+//register
 
 app.get('/register', (req, res) => {
   const templateVars = {
