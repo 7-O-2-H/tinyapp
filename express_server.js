@@ -59,7 +59,7 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-function generateRandomString() {
+const generateRandomString = () => {
   const randOptions = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'; // full set of 62 alphanumeric characters to select from
   let randString = ''; // randomized string to be returned
   for (let i = 0; i < 6; i ++) {
@@ -133,10 +133,8 @@ app.get('/login', (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-  console.log(req.body);
   let {email, password} = req.body;
   password = bcrypt.hashSync(password, 10);
-  console.log(email, password);
   const {err, user} = validateUser(email, password, users);
   if (err) {
     res.status(403).send(err);
@@ -159,7 +157,7 @@ app.get('/register', (req, res) => {
     res.redirect('/urls');
     return;
   }
-  res.render("urls_register", templateVars);   
+  res.render("urls_register", templateVars);
   
 });
 
@@ -169,7 +167,7 @@ app.post('/register', (req, res) => {
   if (email === '' || password === '') {
     res.status(400).send("400: Invalid email.");
     return;
-  };
+  }
   
   if (findUser(email, users)) {
     res.status(400).send("400: This e-mail already has a registered account.");
@@ -187,8 +185,7 @@ app.post('/register', (req, res) => {
     id: userRandomID,
     email: email,
     password: bcrypt.hashSync(password, 10),
-  }
-  console.log(users[userRandomID]);
+  };
   req.session.user_id = hashedUser;
   res.redirect('/urls');
 });
