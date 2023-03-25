@@ -27,7 +27,7 @@ const validateUser = (email, password) => {
     return {err: "403: Oops! The e-mail you entered is not in our database.", user: null}
   }
   const loggedUser = findUser(email);
-  const hashed = loggedUser.hashedPassword;
+  const hashed = loggedUser.password;
   if (bcrypt.compareSync(password, hashed)) {
     return {err: null, user: loggedUser}
   }

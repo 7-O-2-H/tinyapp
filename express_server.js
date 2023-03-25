@@ -175,7 +175,7 @@ app.post('/register', (req, res) => {
     id: userRandomID,
     email: email,
     //password: password,
-    hashedPassword: bcrypt.hashSync(password, 10),
+    password: bcrypt.hashSync(password, 10),
   };
   res.cookie('user_id', users[userRandomID]);
   res.redirect('/urls');
