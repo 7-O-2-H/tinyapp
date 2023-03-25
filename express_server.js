@@ -6,8 +6,13 @@ const { urlDatabase, users } = require("./database");
 const { verifyUser, validateUser, userLoggedin, findUser } = require("./helpers");
 app.set("view engine", "ejs");
 
-const cookieParser = require('cookie-parser');
-app.use(cookieParser());
+const cookieSession = require("cookie-session");
+app.use(cookieSession({
+  name: 'session',
+  keys: ["key1", "key2"],
+
+  maxAge: 24 * 60 * 60 * 1000
+}));
 
 const bcrypt = require("bcryptjs");
 
@@ -20,9 +25,8 @@ app.listen(PORT, () => {
 
 app.get("/urls", (req, res) => {
   const templateVars = {
-    user_id: req.cookies["user_id"],
+    user_id: req.session.user_id,
   };
-
   if (!userLoggedin(templateVars)) {
     res.send("you must be loggin in to view URLs");
     return;
@@ -33,7 +37,7 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  const templateVars = {user_id: req.cookies["user_id"]};
+  const templateVars = {user_id: req.session.user_id};
   if (userLoggedin(templateVars)) {
     res.render("urls_new", templateVars);
   } else {
@@ -46,7 +50,7 @@ app.get("/urls/:id", (req, res) => {
   const templateVars = {
     id: ID,
     longURL: urlDatabase[ID].longURL,
-    user_id: req.cookies["user_id"]
+    user_id: req.session.user_id
   };
   if (!templateVars.id) {
     res.send("You must be logged in to create Tiny URLs");
@@ -67,7 +71,7 @@ function generateRandomString() {
 
 app.post("/urls/new", (req, res) => {
   const templateVars = {
-    user_id: req.cookies["user_id"]
+    user_id: req.session.user_id
   };
   if (!userLoggedin(templateVars)) {
     res.send("You must be logged in to create new Tiny URLs.");
@@ -84,7 +88,7 @@ app.post("/urls/new", (req, res) => {
 
 app.get("/u/:id", (req, res) => {
   const templateVars = {
-    user_id: req.cookies["user_id"]
+    user_id: req.session.user_id
   };
   if (!userLoggedin(templateVars)) {
     res.send("You must be logged in to view Tiny URLs");
@@ -104,7 +108,7 @@ app.post('/urls/:id/delete', (request, response) => {
 
 app.post('/urls/:id/edit', (request, response) => {
   const templateVars = {
-    user_id: request.cookies["user_id"]
+    user_id: request.session.user_id
   };
   if (!userLoggedin(templateVars)) {
     response.send("You must be logged in to create Tiny URLs");
@@ -118,7 +122,7 @@ app.post('/urls/:id/edit', (request, response) => {
 
 app.get('/login', (req, res) => {
   const templateVars = {
-    user_id: req.cookies["user_id"]
+    user_id: req.session.user_id
   };
   if (userLoggedin(templateVars)) {
     res.redirect('/urls');
@@ -129,24 +133,27 @@ app.get('/login', (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-  const {email, password} = req.body;
-  const {err, user} = validateUser(email, password);
+  console.log(req.body);
+  let {email, password} = req.body;
+  password = bcrypt.hashSync(password, 10);
+  console.log(email, password);
+  const {err, user} = validateUser(email, password, users);
   if (err) {
     res.status(403).send(err);
     return;
   }
-  res.cookie("user_id", user);
+  req.session.user_id = user;
   res.redirect('/urls');
 });
 
 app.post('/logout', (req, res) => {
-  res.clearCookie("user_id");
+  req.session.user_id = null;
   res.redirect('/login');
 });
 
 app.get('/register', (req, res) => {
   const templateVars = {
-    user_id: req.cookies["user_id"]
+    user_id: req.session.user_id
   };
   if (userLoggedin(templateVars)) {
     res.redirect('/urls');
@@ -164,7 +171,7 @@ app.post('/register', (req, res) => {
     return;
   };
   
-  if (findUser(email)) {
+  if (findUser(email, users)) {
     res.status(400).send("400: This e-mail already has a registered account.");
     return;
   }
@@ -174,9 +181,14 @@ app.post('/register', (req, res) => {
   users[userRandomID] = {
     id: userRandomID,
     email: email,
-    //password: password,
-    password: bcrypt.hashSync(password, 10),
+    password: password,
   };
-  res.cookie('user_id', users[userRandomID]);
+  const hashedUser = {
+    id: userRandomID,
+    email: email,
+    password: bcrypt.hashSync(password, 10),
+  }
+  console.log(users[userRandomID]);
+  req.session.user_id = hashedUser;
   res.redirect('/urls');
 });

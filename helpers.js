@@ -12,9 +12,8 @@ const verifyUser =  (templateVars) => {
   return usersURLs;
 }
 
-const findUser = function (email) {
+const findUser = function (email, users) {
   for (let userID in users) {
-    console.log(users[userID]);
     if (email === users[userID].email) {
       return users[userID];
     }
@@ -22,13 +21,13 @@ const findUser = function (email) {
   return false;
 };
 
-const validateUser = (email, password) => {
-  if (!findUser(email)) {
+const validateUser = (email, password, users) => {
+  if (!findUser(email, users)) {
     return {err: "403: Oops! The e-mail you entered is not in our database.", user: null}
   }
-  const loggedUser = findUser(email);
+  const loggedUser = findUser(email, users);
   const hashed = loggedUser.password;
-  if (bcrypt.compareSync(password, hashed)) {
+  if (bcrypt.compareSync(hashed, password)) {
     return {err: null, user: loggedUser}
   }
   return {err: "403: Your password is incorrect.", user: null};
