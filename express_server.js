@@ -79,9 +79,13 @@ app.get("/urls/:id", (req, res) => {
     longURL: urlDatabase[ID].longURL,
     user_id: req.session.user_id
   };
+  const key = templateVars.id;
   if (!templateVars.id) {
     res.send("You must be logged in to create Tiny URLs");
     return;
+  }
+  if (templateVars.user_id.id !== urlDatabase[key].userID) {
+    return res.send("You do not have access to this URL!");
   }
   res.render("urls_show", templateVars);
 });
@@ -91,9 +95,13 @@ app.get("/u/:id", (req, res) => {
   const templateVars = {
     user_id: req.session.user_id
   };
+  const key = request.params.id;
   if (!userLoggedin(templateVars)) {
     res.send("You must be logged in to view Tiny URLs");
-    return;
+    return; 
+  }
+  if (templateVars.user_id.id !== urlDatabase[key].userID) {
+    return res.send("You do not have access to this URL!");
   }
   const shortURL = req.params.id;
   const longURL = urlDatabase[shortURL];
@@ -102,11 +110,15 @@ app.get("/u/:id", (req, res) => {
 
 app.post('/urls/:id/edit', (request, response) => {
   const templateVars = {
-    user_id: request.session.user_id
+    user_id: request.session.user_id,
   };
+  const key = request.params.id;
   if (!userLoggedin(templateVars)) {
     response.send("You must be logged in to create Tiny URLs");
-    return;
+    return;  
+  }
+  if (templateVars.user_id.id !== urlDatabase[key].userID) {
+    return res.send("You do not have access to this URL!");
   }
   const longUrl = request.body.newURL;
   const shortURL = request.params.id;
@@ -116,10 +128,14 @@ app.post('/urls/:id/edit', (request, response) => {
 
 //urls delete
 
-app.post('/urls/:id/delete', (request, response) => {
-  const key  = request.params.id;
+app.post('/urls/:id/delete', (req, res) => {
+  const key  = req.params.id;
+  const user = req.session.user_id;
+    if (urlDatabase[key].userID !== user.id) {
+      return res.send("You do do not have access to this URL!");
+    };
   delete urlDatabase[key];
-  response.redirect('/urls');
+  res.redirect('/urls');
 });
 
 //login/logout
